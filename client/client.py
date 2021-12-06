@@ -129,7 +129,7 @@ def traceability(transaction):
     """
     click.echo('Loading the historic...')
     try:
-        r = api_call("GET", "transactions/"+transaction+"/traceability")
+        r = api_call("GET", "transactions/"+transaction)
         click.echo('Historic found.')
     except Exception as e:
         click.echo('An error occured during the acceptation of the transaction.')
