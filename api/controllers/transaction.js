@@ -5,12 +5,13 @@ const TransactionContract = require("../contracts/transaction");
 
 exports.getHistoryTransaction = async (req, res, next) => {
     try {
-        const historyTransaction = TransactionContract.getHistoryTransaction(req.addressTransaction);
+        const historyTransaction = await TransactionContract.getHistoryTransaction(req.params.transactionAddress);
 
         res.status(201).json({
             success: true,
             data: historyTransaction,
         });
+
     } catch (err) {
         next(err);
     }
@@ -22,7 +23,7 @@ exports.createTransaction = async (req, res, next) => {
     try {
 
         let addressPreviousTransaction = req.body.addressPreviousTransaction != undefined ? req.body.addressPreviousTransaction : "0x0000000000000000000000000000000000000000";
-
+        
         const transaction = await ActorContract.createTransaction(
             req.body.actorAddress,
             req.body.receiverAddress,

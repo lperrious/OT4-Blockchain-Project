@@ -132,7 +132,7 @@ def traceability(transaction):
         r = api_call("GET", "transactions/"+transaction)
         click.echo('Historic found.')
     except Exception as e:
-        click.echo('An error occured during the acceptation of the transaction.')
+        click.echo('An error occured retrieving the informations.')
         click.echo(e)
 
 

@@ -15,17 +15,16 @@ module.exports = {
         Actor.setProvider(web3.currentProvider);
     },
 
-    getHistoryTransaction : async function (addressTransaction) {
+    getHistoryTransaction: async function (addressTransaction) {
         let historyTransaction = [];
-        let transaction = await Transaction.at(addressTransaction);
-        
-        historyTransaction.add(transaction);
+        var transaction = await Transaction.at(addressTransaction);
+        historyTransaction.push(transaction)
     
         while (transaction.addressPreviousTransaction != "0x0000000000000000000000000000000000000000") {
             transaction = await Transaction.at(transaction.addressPreviousTransaction);
-            historyTransaction.add(transaction);
+            historyTransaction.push(transaction);
         }
-    
+        // console.log(historyTransaction)
         return historyTransaction;
     },
 
@@ -36,7 +35,8 @@ module.exports = {
         // TODO Add a check in the transaction contract to verify the if it is the reciverAddress is the actor who initates the call
         // TODO Add a check to verify the contract is not already accepted
         // TODO Do the same for finish transaction
-        
+        console.log(typeof addressTransaction)
+        console.log(addressTransaction)
         var transaction = await Transaction.at(addressTransaction);
 
         const accounts = await web3.eth.getAccounts();
@@ -47,7 +47,7 @@ module.exports = {
         if(isAccepted) {
             return {
                 success : true,
-                data: "ransaction accepted."
+                data: "Transaction accepted."
             }
         };
 
