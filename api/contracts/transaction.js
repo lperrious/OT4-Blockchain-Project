@@ -15,16 +15,23 @@ module.exports = {
         Actor.setProvider(web3.currentProvider);
     },
 
-    getHistoryTransaction : async function (addressTransaction) {
+    getHistoryTransaction : async function (transactionAddress) {
         let historyTransaction = [];
-        let transaction = await Transaction.at(addressTransaction);
-        
-        historyTransaction.add(transaction);
     
-        while (transaction.addressPreviousTransaction != "0x0000000000000000000000000000000000000000") {
-            transaction = await Transaction.at(transaction.addressPreviousTransaction);
-            historyTransaction.add(transaction);
-        }
+        do {
+            transaction = await (await Transaction.at(transactionAddress)).getTransactionInformations();
+            historyTransaction.push({
+                actorAddress: transaction._actorAddress,
+                receiverAddress: transaction._receiverAddress,
+                productName: transaction._productName,
+                transactionAddress: transactionAddress,
+                addressPreviousTransaction: transaction.addressPreviousTransaction,
+                date: transaction._date,
+                isFinished: transaction._isFinished,
+                isAccepted: transaction._isAccepted,
+            });
+            transactionAddress = transaction._addressPreviousTransaction
+        } while (transactionAddress != "0x0000000000000000000000000000000000000000");
     
         return historyTransaction;
     },
@@ -47,7 +54,7 @@ module.exports = {
         if(isAccepted) {
             return {
                 success : true,
-                data: "ransaction accepted."
+                data: "Transaction accepted."
             }
         };
 
@@ -62,29 +69,21 @@ module.exports = {
     finishTransaction: async function (addressTransaction, receiverAddress) {
         var transaction = await Transaction.at(addressTransaction);
 
-        if(transaction.receiverAddress != receiverAddress) return {
-            success : false,
-            data: "Only the transaction's receiver is allowed."
-        };
+        const accounts = await web3.eth.getAccounts();
 
-        if (transaction.isAccepted && !transaction.isFinished) {
-            const accounts = await web3.eth.getAccounts();
-
-            await transaction.finishTransaction({from : accounts[0]});
-
+        await transaction.finishTransaction({from : accounts[0]});
+        
+        isFinished = await transaction.isFinished.call()
+        if(isFinished) {
             return {
                 success : true,
-                data : addressTransaction
+                data: "Transaction accepted."
             }
-        } else {
-            if (!transaction.isAccepted) return {
-                success : false,
-                data : "The transaction have to be accepted before being set as finished."
-            } 
-            else return {
-                    success : false,
-                    data : "The transaction has already been set to a finished state."
-                }
+        };
+
+        return {
+            success: false,
+            data: "Transaction not accepted."
         }
     },
 };

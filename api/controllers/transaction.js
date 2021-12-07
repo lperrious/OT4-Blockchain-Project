@@ -5,7 +5,7 @@ const TransactionContract = require("../contracts/transaction");
 
 exports.getHistoryTransaction = async (req, res, next) => {
     try {
-        const historyTransaction = TransactionContract.getHistoryTransaction(req.addressTransaction);
+        const historyTransaction = await TransactionContract.getHistoryTransaction(req.params.transactionAddress);
 
         res.status(201).json({
             success: true,
@@ -71,14 +71,14 @@ exports.finishTransaction = async (req, res, next) => {
         if(!ans.success){
             res.status(400).json({
                 success: false,
-                message: ans.data,
+                data: ans.data,
             });
         } else {
             res.status(200).json({
                 success: true,
                 data: ans.data,
-            })
-        };
+            });
+        }
     } catch (err) {
         next(err);
     }

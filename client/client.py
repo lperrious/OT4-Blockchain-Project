@@ -2,6 +2,7 @@
 
 import click
 import requests
+from datetime import datetime
 
 API_ADDRESS = 'http://127.0.0.1:8080/api/v1/'
 #API_ADDRESS = 'http://127.0.0.1:4444/api/v1/'
@@ -44,7 +45,6 @@ class AddressTransactionType(click.ParamType):
             self.fail(f"{value!r} is not a valid adress", param, ctx)
 
 ADDRESS = AddressType()
-ADDRESS_TRANSACTION = AddressTransactionType()
 
 
 @click.group()
@@ -74,7 +74,7 @@ def create_actor(name):
 @click.argument('actor_address', type=ADDRESS)
 @click.argument('receiver_address', type=ADDRESS)
 @click.argument('product_name', type=str)
-@click.option('-t', '--previous-transaction', type=ADDRESS_TRANSACTION, help='Address of the transact that the product is comming from.')
+@click.option('-t', '--previous-transaction', type=ADDRESS, help='Address of the transact that the product is comming from.')
 def create_transaction(actor_address, receiver_address, product_name, previous_transaction):
     """Create a new transaction to modify a product or to send it to another actor
 
@@ -116,8 +116,8 @@ def accept_transaction(actor_address, transaction):
 
 @cli.command()
 @click.argument('actor_address', type=ADDRESS)
-@click.argument('transaction', type=ADDRESS_TRANSACTION)
-def finish_transaction(actor, transaction):
+@click.argument('transaction', type=ADDRESS)
+def finish_transaction(actor_address, transaction):
     """Finish an accepted transaction.
     
     ACTOR_ADDRESS is the address of the actor who wants to finish the transaction.
@@ -125,8 +125,8 @@ def finish_transaction(actor, transaction):
     """
     click.echo('Finishing the transaction...')
     try:
-        r = api_call("PUT", "transactions/"+transaction+"/accept", {"receiverAddress" : actor, "transactionAddress": transaction})
-        click.echo('Transaction accepted.')
+        r = api_call("PUT", "transactions/"+transaction+"/finish", {"receiverAddress" : actor_address, "transactionAddress": transaction})
+        click.echo('Transaction finished.')
     except Exception as e:
         click.echo('An error occured during the finalisation of the transaction.')
         click.echo(e)
@@ -141,8 +141,19 @@ def traceability(transaction):
     """
     click.echo('Loading the historic...')
     try:
-        r = api_call("GET", "transactions/"+transaction+"/traceability")
+        r = api_call("GET", "transactions/"+transaction)
         click.echo('Historic found.')
+        for transaction in r:
+            click.echo(
+            f"""Transaction {transaction['transactionAddress']}
+                from actor {transaction['actorAddress']}
+                to actor {transaction['receiverAddress']}
+                the {datetime.fromtimestamp(int(transaction['date'],16))}
+                for the product {transaction['productName']}
+                Accepted: {transaction['isAccepted']}
+                Finished: {transaction['isFinished']}
+                """
+            )
     except Exception as e:
         click.echo('An error occured during the acceptation of the transaction.')
         click.echo(e)
