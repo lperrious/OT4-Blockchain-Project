@@ -77,13 +77,13 @@ module.exports = {
         if(isFinished) {
             return {
                 success : true,
-                data: "Transaction accepted."
+                data: "Transaction finished."
             }
         };
 
         return {
             success: false,
-            data: "Transaction not accepted."
+            data: "Transaction not finished."
         }
     },
 };
